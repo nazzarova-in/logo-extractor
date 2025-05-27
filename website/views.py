@@ -1,4 +1,4 @@
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, filters
 from rest_framework.response import Response
 from .models import WebsiteURL, TLD
 from .serializers import WebsiteSerializers
@@ -8,6 +8,8 @@ from logosfinder.tasks import search_logo_for_site
 class WebSiteURLViewSet(viewsets.ModelViewSet):
   queryset = WebsiteURL.objects.all()
   serializer_class = WebsiteSerializers
+  filter_backends = [filters.SearchFilter]
+  search_fields = ['url']
 
   def create(self, request, *args, **kwargs):
     if isinstance(request.data, dict) and 'urls' in request.data:
