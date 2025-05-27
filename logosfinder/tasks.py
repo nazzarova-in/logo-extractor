@@ -1,4 +1,8 @@
+from datetime import timedelta
+
 from celery import shared_task
+from django.utils import timezone
+
 from .models import Logo
 from website.models import WebsiteURL
 from .search_logo import find_logo_clearbit, find_logo_from_html
@@ -11,6 +15,13 @@ def search_logo_for_site(site_id):
     site = WebsiteURL.objects.get(id=site_id)
   except WebsiteURL.DoesNotExist:
     return f"Site {site_id} not found!"
+
+  three_months_ago = timezone.now() - timedelta(days=90)
+  last_logo = Logo.objects.filter(website=site).order_by('-created').first()
+
+  if last_logo and last_logo.created >= three_months_ago:
+    return f"Logo already exists for site {site.url}."
+
 
   clearbit_logo_url = find_logo_clearbit(site.url)
   html_logo_url = find_logo_from_html(site.url)
@@ -30,17 +41,28 @@ def search_logo_for_site(site_id):
     if not image_base64:
       return f"Failed to encode logo to Base64 from {logo_url}"
 
-    Logo.objects.create(
-      title=f"Logo for {site.url}",
-      path=logo_url,
-      original_url=logo_url,
-      source=Logo.CLEARBIT if find_logo_clearbit(site.url) else Logo.HTML_PARSER,
-      website=site,
-      version=1,
-      image_base64=image_base64
-    )
-    return f"Logo saved with Base64 for site {site.url}"
+    if last_logo:
+      last_logo.path = logo_url
+      last_logo.original_url = logo_url
+      last_logo.source = Logo.CLEARBIT if clearbit_logo_url else Logo.HTML_PARSER
+      last_logo.image_base64 = image_base64
+      last_logo.created = timezone.now()
+      last_logo.version += 1
+      last_logo.save()
+      return f"Logo for {site.url} updated."
+    else:
+      Logo.objects.create(
+        title=f"Logo for {site.url}",
+        path=logo_url,
+        original_url=logo_url,
+        source=Logo.CLEARBIT if clearbit_logo_url else Logo.HTML_PARSER,
+        website=site,
+        version=1,
+        image_base64=image_base64
+      )
+      return f"Logo saved with Base64 for site {site.url}"
 
   return f"No logo found for site {site.url}"
+
 
 
