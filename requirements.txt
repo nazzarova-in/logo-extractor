@@ -7,4 +7,6 @@ requests
 python-dotenv>=0.21.0
 djangorestframework>=3.12
 Pillow
+djangorestframework-simplejwt
+
 
