@@ -1,3 +1,4 @@
+from rest_framework import viewsets, status, filters
 from datetime import timedelta
 from django.utils import timezone
 from rest_framework import viewsets, status
@@ -11,6 +12,8 @@ from logosfinder.models import Logo
 class WebSiteURLViewSet(viewsets.ModelViewSet):
   queryset = WebsiteURL.objects.all()
   serializer_class = WebsiteSerializers
+  filter_backends = [filters.SearchFilter]
+  search_fields = ['url']
 
   def create(self, request, *args, **kwargs):
     if isinstance(request.data, dict) and 'urls' in request.data:
@@ -45,7 +48,6 @@ class WebSiteURLViewSet(viewsets.ModelViewSet):
       return Response(results, status=status.HTTP_201_CREATED)
 
     return super().create(request, *args, **kwargs)
-
 
   def perform_create(self, serializer):
     url = serializer.validated_data['url']
