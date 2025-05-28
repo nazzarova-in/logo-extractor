@@ -65,4 +65,19 @@ def search_logo_for_site(site_id):
   return f"No logo found for site {site.url}"
 
 
+@shared_task
+def update_old_logos():
+  ninety_days_ago = timezone.now() - timedelta(days=90)
+
+  outdated_sites = (
+      WebsiteURL.objects
+      .filter(logo__created__lt=ninety_days_ago)
+      .distinct()
+  )
+
+  for site in outdated_sites:
+      search_logo_for_site.delay(site.id)
+
+  return f"Updated: {outdated_sites.count()} sites with outdated logos"
+
 
