@@ -6,3 +6,4 @@ class WebsiteURLAdmin(admin.ModelAdmin):
     list_display = ('id', 'url', 'tld')
 
 admin.site.register(TLD)
+
