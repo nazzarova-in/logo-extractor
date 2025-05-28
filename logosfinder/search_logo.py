@@ -4,7 +4,6 @@ from bs4 import BeautifulSoup
 from urllib.parse import  urljoin
 
 
-
 def find_logo_clearbit(website):
     try:
         parsed_website = urlparse(website)
@@ -24,8 +23,6 @@ def find_logo_clearbit(website):
     except Exception as e:
         print(f"Error: {e}")
         return None
-
-
 
 
 def find_logo_from_html(website):
@@ -55,8 +52,3 @@ def find_logo_from_html(website):
   except Exception as e:
     print(f"Error: {e}")
     return None
-
-
-
-
-
