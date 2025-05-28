@@ -7,6 +7,7 @@ from .models import Logo
 from website.models import WebsiteURL
 from .search_logo import find_logo_clearbit, find_logo_from_html
 from .utils import download_image_from_url, resize_image, encode_image_to_base64
+from django.core.files.base import ContentFile
 
 
 @shared_task
@@ -38,8 +39,11 @@ def search_logo_for_site(site_id):
       return f"Failed to resize logo from {logo_url}"
 
     image_base64 = encode_image_to_base64(resized_image_bytes)
+
     if not image_base64:
       return f"Failed to encode logo to Base64 from {logo_url}"
+
+    content_file = ContentFile(resized_image_bytes)
 
     if last_logo:
       last_logo.path = logo_url
@@ -48,10 +52,11 @@ def search_logo_for_site(site_id):
       last_logo.image_base64 = image_base64
       last_logo.created = timezone.now()
       last_logo.version += 1
+      last_logo.image.save(f"logo_{site.id}.png", content_file, save=False)
       last_logo.save()
       return f"Logo for {site.url} updated."
     else:
-      Logo.objects.create(
+      logo = Logo.objects.create(
         title=f"Logo for {site.url}",
         path=logo_url,
         original_url=logo_url,
@@ -60,7 +65,9 @@ def search_logo_for_site(site_id):
         version=1,
         image_base64=image_base64
       )
-      return f"Logo saved with Base64 for site {site.url}"
+      logo.image.save(f"logo_{site.id}.png", content_file, save=True)
+      logo.save()
+      return f"Logo saved with Base64 and file for site {site.url}"
 
   return f"No logo found for site {site.url}"
 
