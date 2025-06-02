@@ -35,7 +35,6 @@ def find_logo_from_html(website):
     icon_tags = soup.find_all("link", rel=lambda value: value and any(
       r in value.lower() for r in ["icon", "shortcut", "apple-touch-icon"]))
 
-
     for tag in icon_tags:
       href = tag.get("href")
       if href:

@@ -7,4 +7,3 @@ def tld_extractor(url):
         domain = domain[4:]
     tld = domain.split('.')[-1]
     return '.' + tld
-

@@ -23,4 +23,3 @@ class Logo(models.Model):
 
   def __str__(self):
     return f"{self.website.url} - {self.source}"
-
