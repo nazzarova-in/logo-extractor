@@ -86,5 +86,3 @@ def update_old_logos():
       search_logo_for_site.delay(site.id)
 
   return f"Updated: {outdated_sites.count()} sites with outdated logos"
-
-

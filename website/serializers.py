@@ -7,4 +7,3 @@ class WebsiteSerializers(serializers.ModelSerializer):
     model = WebsiteURL
     fields = ['id', 'url', 'tld', 'status', 'created']
     read_only_fields = ['tld', 'status', 'created']
-
