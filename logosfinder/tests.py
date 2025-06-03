@@ -4,6 +4,8 @@ from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APITestCase, APIClient
 from django.contrib.auth.models import User
+from logosfinder.serializers import LogoSerializer
+from rest_framework.test import APIRequestFactory
 
 from logosfinder.models import Logo
 from logosfinder.tasks import search_logo_for_site, update_old_logos
@@ -58,6 +60,7 @@ class LogosViewSetTestCase(APITestCase):
   @mock.patch('logosfinder.tasks.download_image_from_url')
   @mock.patch('logosfinder.tasks.resize_image')
   @mock.patch('logosfinder.tasks.encode_image_to_base64')
+
   def test_search_logo_for_site_creates_logo(self, mock_encode, mock_resize, mock_download, mock_find_html,
                                              mock_find_clearbit):
 
@@ -92,6 +95,18 @@ class LogosViewSetTestCase(APITestCase):
     result = search_logo_for_site(self.site.id)
     self.assertIn('Logo already exists', result)
 
+  def test_get_image_url(self):
+    logo = Logo.objects.create(website=self.site, image=self.file_logo, version=1)
+
+    factory = APIRequestFactory()
+    request = factory.get('/')
+
+    serializer = LogoSerializer(context={'request': request})
+    image_url = serializer.get_image_url(logo)
+
+    self.assertTrue(image_url.startswith('http://testserver/media/'))
+
+
   class UpdateOldLogosTaskTestCase(TestCase):
     @mock.patch('logosfinder.tasks.search_logo_for_site.delay')
     def test_update_old_logos_calls_task(self, mock_delay):
@@ -113,7 +128,6 @@ class LogosViewSetTestCase(APITestCase):
 
       mock_delay.assert_called_once_with(site_old.id)
       self.assertIn('Updated', result)
-
 
 
 class ImageUtilsTestCase(unittest.TestCase):
@@ -167,8 +181,5 @@ class ImageUtilsTestCase(unittest.TestCase):
       self.assertIsInstance(encoded, str)
       self.assertTrue(encoded.startswith(base64.b64encode(b"test").decode("utf-8")[:3]))
 
-
 if __name__ == "__main__":
     unittest.main()
-
-
