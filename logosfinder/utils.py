@@ -20,6 +20,5 @@ def resize_image(image, size=(64, 64)):
   resized.save(buffer, format='PNG')
   return buffer.getvalue()
 
-
 def encode_image_to_base64(image_bytes):
   return base64.b64encode(image_bytes).decode("utf-8")
