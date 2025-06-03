@@ -26,31 +26,36 @@ class WebSiteURLViewSet(viewsets.ModelViewSet):
       results = []
 
       for url in urls:
-        if not url.startswith("http://") and not url.startswith("https://"):
-          url = "https://" + url
+        try:
+          if not url.startswith("http://") and not url.startswith("https://"):
+            url = "https://" + url
 
-        serializer = WebsiteSerializers(data={'url': url})
-        if serializer.is_valid():
-          tld = TLD.objects.get_or_create_from_url(url)
-          obj, created_flag = WebsiteURL.objects.get_or_create(
-            url=url, defaults={'tld': tld}
-          )
-          status_str = 'created' if created_flag else 'already exists'
+          serializer = WebsiteSerializers(data={'url': url})
+          if serializer.is_valid():
+            tld = TLD.objects.get_or_create_from_url(url)
+            obj, created_flag = WebsiteURL.objects.get_or_create(
+              url=url, defaults={'tld': tld}
+            )
+            status_str = 'created' if created_flag else 'already exists'
 
-          if created_flag:
-            search_logo_for_site.delay(obj.id)
-          else:
-            last_logo = Logo.objects.filter(website=obj).order_by('-created').first()
-            if last_logo:
-              three_months_ago = timezone.now() - timedelta(days=90)
-              if last_logo.created < three_months_ago:
-                search_logo_for_site.apply_async(args=[obj.id], countdown=300)
-            else:
+            if created_flag:
               search_logo_for_site.delay(obj.id)
+            else:
+              last_logo = Logo.objects.filter(website=obj).order_by('-created').first()
+              if last_logo:
+                three_months_ago = timezone.now() - timedelta(days=90)
+                if last_logo.created < three_months_ago:
+                  search_logo_for_site.apply_async(args=[obj.id], countdown=300)
+              else:
+                search_logo_for_site.delay(obj.id)
 
-          results.append({'url': url, 'status': status_str})
-        else:
-          results.append({'url': url, 'status': 'invalid'})
+            results.append({'url': url, 'status': status_str})
+          else:
+            results.append({'url': url, 'status': 'invalid'})
+
+        except Exception as e:
+          print(f"[ERROR]  URL {url}: {e}")
+          results.append({'url': url, 'status': 'error', 'detail': str(e)})
 
       return Response(results, status=status.HTTP_201_CREATED)
 

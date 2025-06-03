@@ -29,7 +29,7 @@ def find_logo_from_html(website):
   try:
     if not website.startswith("http"):
       website = "https://" + website
-    response = requests.get(website, timeout = 40)
+    response = requests.get(website, timeout = 300)
     soup = BeautifulSoup(response.text, "html.parser")
 
     icon_tags = soup.find_all("link", rel=lambda value: value and any(
