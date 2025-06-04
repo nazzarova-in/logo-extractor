@@ -10,3 +10,4 @@ djangorestframework>=3.12
 Pillow
 djangorestframework-simplejwt
 coverage
+gevent>=22.10.2
