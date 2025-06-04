@@ -40,7 +40,18 @@ services:
   celery:
     build: .
     container_name: celery_worker
-    command: celery -A logo_extractor worker --loglevel=info --pool=solo
+    command: celery -A logo_extractor worker --loglevel=info --pool=gevent --concurrency=50
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - web
+  celery_worker_2:
+    build: .
+    container_name: celery_worker_2
+    command: celery -A logo_extractor worker --loglevel=info --pool=gevent --concurrency=50
     volumes:
       - .:/app
     env_file:
