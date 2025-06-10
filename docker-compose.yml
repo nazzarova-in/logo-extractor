@@ -40,7 +40,7 @@ services:
   celery:
     build: .
     container_name: celery_worker
-    command: celery -A logo_extractor worker --loglevel=info --pool=gevent --concurrency=50
+    command: celery -A logo_extractor worker --loglevel=info --pool=gevent --concurrency=100
     volumes:
       - .:/app
     env_file:
@@ -51,7 +51,31 @@ services:
   celery_worker_2:
     build: .
     container_name: celery_worker_2
-    command: celery -A logo_extractor worker --loglevel=info --pool=gevent --concurrency=50
+    command: celery -A logo_extractor worker --loglevel=info --pool=gevent --concurrency=100
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - web
+
+  celery_worker_3:
+    build: .
+    container_name: celery_worker_3
+    command: celery -A logo_extractor worker --loglevel=info --pool=gevent --concurrency=100
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - web
+
+  celery_worker_4:
+    build: .
+    container_name: celery_worker_4
+    command: celery -A logo_extractor worker --loglevel=info --pool=gevent --concurrency=100
     volumes:
       - .:/app
     env_file:

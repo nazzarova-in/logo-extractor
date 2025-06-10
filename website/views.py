@@ -6,6 +6,7 @@ from .models import WebsiteURL, TLD
 from .serializers import WebsiteSerializers
 from logosfinder.tasks import search_logo_for_site
 from logosfinder.models import Logo
+from urllib.parse import urlparse
 
 class WebSiteURLViewSet(viewsets.ModelViewSet):
   queryset = WebsiteURL.objects.all()
@@ -26,9 +27,10 @@ class WebSiteURLViewSet(viewsets.ModelViewSet):
       results = []
 
       for url in urls:
+        parsed = urlparse(url)
         try:
-          if not url.startswith("http://") and not url.startswith("https://"):
-            url = "https://" + url
+          if not parsed.scheme:
+            url = 'https://' + url
 
           serializer = WebsiteSerializers(data={'url': url})
           if serializer.is_valid():
